@@ -161,7 +161,7 @@ const fetchNews = useCallback(async (): Promise<void> => {
     } catch (err: any) {
       console.error('Error fetching news:', err.response?.data || err.message);
 
-      setError('Failed to fetch news. Please try again later.');
+      setError('Failed to fetch news. Please try again later.(Fetching from brwoser is not included in the free teir list, in local its working totally fine.)');
     } finally {
       setLoading(false);
       setRefreshing(false);
