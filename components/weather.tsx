@@ -13,6 +13,13 @@ import {
   Title,
 } from 'chart.js';
 
+import {
+  WiThermometer,
+  WiStrongWind,
+  WiHumidity,
+  WiCloudy,
+} from 'react-icons/wi';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -23,7 +30,6 @@ ChartJS.register(
   Title
 );
 
-// Plugin to show values above bars and points
 const dataLabelPlugin = {
   id: 'valueOnTop',
   afterDatasetsDraw(chart: any) {
@@ -32,7 +38,7 @@ const dataLabelPlugin = {
       const meta = chart.getDatasetMeta(datasetIndex);
       meta.data.forEach((bar: any, index: number) => {
         const value = dataset.data[index];
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = '#fff';
         ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(value, bar.x, bar.y - 5);
@@ -43,14 +49,15 @@ const dataLabelPlugin = {
 ChartJS.register(dataLabelPlugin);
 
 export default function WeatherPage() {
-  const [city, setCity] = useState('Visakhapatnam');
-  const [inputCity, setInputCity] = useState('Visakhapatnam');
+  const [city, setCity] = useState('');
+  const [inputCity, setInputCity] = useState('');
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const apiKey = process.env.NEXT_PUBLIC_OPENWEATHERMAP_API_KEY;
 
   const fetchWeather = async (cityName: string) => {
+    if (!cityName) return;
     setLoading(true);
     setError(null);
     setData(null);
@@ -74,7 +81,7 @@ export default function WeatherPage() {
   };
 
   useEffect(() => {
-    fetchWeather(city);
+    if (city) fetchWeather(city);
   }, [city]);
 
   const handleSearch = () => {
@@ -102,20 +109,20 @@ export default function WeatherPage() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen p-4 max-h-screen overflow-y-auto">
-      {/* Search Box */}
+    <div className="bg-zinc-900 min-h-screen p-10 h-auto overflow-y-auto text-white">
+      {/* Search */}
       <div className="mb-4 flex flex-col md:flex-row items-center gap-3">
         <input
           type="text"
           value={inputCity}
           onChange={(e) => setInputCity(e.target.value)}
           placeholder="Enter city name"
-          className="px-4 py-2 border rounded-lg shadow w-full md:w-1/3"
+          className="px-4 py-2 border rounded-lg shadow w-full md:w-1/3  text-white placeholder-gray-400"
           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
         />
         <button
           onClick={handleSearch}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition w-full md:w-auto"
+          className=" text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition w-full md:w-auto"
         >
           Search
         </button>
@@ -124,54 +131,74 @@ export default function WeatherPage() {
       {loading && <p className="text-center py-4">Loading...</p>}
       {error && <p className="text-red-500 text-center py-4">{error}</p>}
 
+      {!data && !loading && !error && (
+        <p className="text-center text-gray-400">Please search for a city to view weather.</p>
+      )}
+
       {data?.current && (
         <div className="space-y-4">
-          {/* Top Section - Current Weather and Bar Chart */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Current Weather Data - Left Side */}
-            <div className="bg-white p-4 rounded-xl shadow">
-              <h2 className="text-xl font-semibold text-blue-800 mb-2">
+            <div className="bg-[#2C2C2E] p-4 rounded-xl shadow">
+              <h2 className="text-xl font-semibold text-white mb-2">
                 Weather in {data.current.name}
               </h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-2">🌡️</span>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {/* Weather Stats */}
+                {[
+                  {
+                    icon: <WiThermometer className="text-3xl text-blue-400" />,
+                    label: 'Temp',
+                    value: `${data.current.main.temp}°C`,
+                  },
+                  {
+                    icon: <WiStrongWind className="text-3xl text-blue-400" />,
+                    label: 'Wind',
+                    value: `${data.current.wind.speed} m/s`,
+                  },
+                  {
+                    icon: <WiHumidity className="text-3xl text-blue-400" />,
+                    label: 'Humidity',
+                    value: `${data.current.main.humidity}%`,
+                  },
+                  {
+                    icon: <WiCloudy className="text-3xl text-blue-400" />,
+                    label: 'Clouds',
+                    value: `${data.current.clouds.all}%`,
+                  },
+                  {
+                    icon: <span className="text-2xl text-yellow-400">🌄</span>,
+                    label: 'Sunrise',
+                    value: new Date(data.current.sys.sunrise * 1000).toLocaleTimeString(),
+                  },
+                  {
+                    icon: <span className="text-2xl text-orange-400">🌇</span>,
+                    label: 'Sunset',
+                    value: new Date(data.current.sys.sunset * 1000).toLocaleTimeString(),
+                  },
+                  {
+                    icon: <span className="text-2xl">📈</span>,
+                    label: 'Pressure',
+                    value: `${data.current.main.pressure} hPa`,
+                  },
+                  {
+                    icon: <span className="text-2xl">👁️</span>,
+                    label: 'Visibility',
+                    value: `${data.current.visibility / 1000} km`,
+                  },
+                ].map((stat, i) => (
+                  <div key={i} className="flex items-center space-x-3">
+                    {stat.icon}
                     <div>
-                      <p className="text-sm text-gray-500">Temperature</p>
-                      <p className="font-bold">{data.current.main.temp}°C</p>
+                      <p className="text-sm text-gray-400">{stat.label}</p>
+                      <p className="font-bold text-white">{stat.value}</p>
                     </div>
                   </div>
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-2">💨</span>
-                    <div>
-                      <p className="text-sm text-gray-500">Wind</p>
-                      <p className="font-bold">{data.current.wind.speed} m/s</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-2">🌥️</span>
-                    <div>
-                      <p className="text-sm text-gray-500">Condition</p>
-                      <p className="font-bold capitalize">{data.current.weather[0].description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-2">💧</span>
-                    <div>
-                      <p className="text-sm text-gray-500">Humidity</p>
-                      <p className="font-bold">{data.current.main.humidity}%</p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
-            {/* Temperature Bar Chart - Right Side */}
-            <div className="bg-white p-4 rounded-xl shadow">
-              <h3 className="text-lg font-semibold mb-2">Temperature Metrics</h3>
+            <div className="bg-[#2C2C2E] p-4 rounded-xl shadow">
+              <h3 className="text-lg font-semibold mb-2 text-white">Temperature Metrics</h3>
               <div className="h-64">
                 <Bar
                   data={{
@@ -202,6 +229,10 @@ export default function WeatherPage() {
                           data.current.main.temp_min,
                           data.current.main.feels_like
                         ) - 5,
+                        ticks: { color: '#ccc' },
+                      },
+                      x: {
+                        ticks: { color: '#ccc' },
                       },
                     },
                   }}
@@ -210,11 +241,9 @@ export default function WeatherPage() {
             </div>
           </div>
 
-          {/* Bottom Section - Hourly Forecast and Rain Prediction */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Hourly Forecast - 65% width (2 columns) */}
-            <div className="bg-white p-4 rounded-xl shadow md:col-span-2">
-              <h3 className="text-lg font-semibold mb-2">
+            <div className="bg-[#2C2C2E] p-4 rounded-xl shadow md:col-span-2">
+              <h3 className="text-lg font-semibold mb-2 text-white">
                 🌡️ Hourly Forecast (Next 24 hrs)
               </h3>
               <div className="h-64">
@@ -229,8 +258,8 @@ export default function WeatherPage() {
                         data: data.forecast.list
                           .slice(0, 8)
                           .map((item: any) => item.main.temp),
-                        borderColor: '#3B82F6',
-                        backgroundColor: '#BFDBFE',
+                        borderColor: '#60A5FA',
+                        backgroundColor: '#3B82F6',
                         tension: 0.4,
                         pointRadius: 5,
                         pointHoverRadius: 6,
@@ -244,28 +273,33 @@ export default function WeatherPage() {
                     plugins: {
                       legend: { display: false },
                     },
+                    scales: {
+                      x: { ticks: { color: '#ccc' } },
+                      y: { ticks: { color: '#ccc' } },
+                    },
                   }}
                 />
               </div>
             </div>
 
-            {/* Rain Prediction - 35% width (1 column) */}
-            <div className="bg-white p-4 rounded-xl shadow">
-              <h3 className="text-lg font-semibold mb-2">
+            <div className="bg-[#2C2C2E] p-4 rounded-xl shadow">
+              <h3 className="text-lg font-semibold mb-2 text-white">
                 🌧️ Rain Prediction (Next 3 Days)
               </h3>
               <div className="space-y-4 mt-4">
                 {getRainChances().map((day) => (
                   <div key={day.date} className="flex flex-col">
                     <div className="flex justify-between mb-1">
-                      <span className="font-medium">
-                        {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                      <span className="font-medium text-gray-300">
+                        {new Date(day.date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                        })}
                       </span>
-                      <span className="font-bold">{day.chance}%</span>
+                      <span className="font-bold text-white">{day.chance}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div className="w-full bg-gray-600 rounded-full h-2.5">
                       <div
-                        className="bg-blue-600 h-2.5 rounded-full"
+                        className="bg-blue-500 h-2.5 rounded-full"
                         style={{ width: `${day.chance}%` }}
                       ></div>
                     </div>

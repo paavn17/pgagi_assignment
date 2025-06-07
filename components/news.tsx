@@ -1,6 +1,8 @@
+'use client';
+
 import axios from 'axios';
 import { useState, useEffect } from 'react';
-import { NewspaperIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Article {
@@ -21,15 +23,15 @@ const categories = [
   'health',
   'science',
   'sports',
-  'technology'
+  'technology',
 ];
 
-const News = () => {
+export default function News() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('general');
-  const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [selectedCategory, setSelectedCategory] = useState('general');
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchNews = async () => {
     try {
@@ -57,39 +59,30 @@ const News = () => {
     fetchNews();
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-zinc-900 text-white p-4 sm:pl-12">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Latest News
-          </h1>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-            Stay updated with the latest headlines
-          </p>
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">📰 Latest News</h1>
+          <p className="mt-2 text-sm sm:text-base text-gray-400">Stay updated with the latest headlines</p>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex overflow-x-auto pb-2 mb-8 scrollbar-hide">
-          <div className="flex space-x-2">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleCategoryChange(category)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
-                  selectedCategory === category
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                } capitalize shadow-sm`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+        {/* Categories - Now wraps on small screens */}
+        <div className="flex flex-wrap gap-2 mb-6 justify-center">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-3 py-1 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition ${
+                selectedCategory === category
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
+              } capitalize`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
 
         {/* Refresh Button */}
@@ -97,129 +90,78 @@ const News = () => {
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-white rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition"
           >
-            <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`w-3 h-3 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
           </button>
         </div>
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
+          <div className="bg-red-900/50 border border-red-700 text-red-300 p-3 sm:p-4 rounded-lg mb-6 text-xs sm:text-sm">
+            {error}
           </div>
         )}
 
-        {/* Loading State */}
+        {/* Loading */}
         {loading && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-4">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-5/6 mb-4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-                </div>
-              </div>
-            ))}
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         )}
 
-        {/* News Articles */}
-        {!loading && !error && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Articles Grid */}
+        {!loading && (
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-6">
             {articles.map((article, index) => (
-              <article
+              <div
                 key={index}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                className="bg-zinc-800 rounded-xl shadow-lg overflow-hidden flex flex-col h-full hover:shadow-xl transition-shadow"
               >
                 {article.urlToImage && (
                   <img
                     src={article.urlToImage}
                     alt={article.title}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-40 sm:h-48 object-cover"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x200?text=No+Image';
                     }}
                   />
                 )}
-                <div className="p-6">
-                  <div className="flex items-center text-sm text-gray-500 mb-2">
-                    <NewspaperIcon className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                    {article.source.name}
+                <div className="p-4 sm:p-5 flex flex-col flex-grow">
+                  <div className="flex-grow">
+                    <h2 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 line-clamp-2">{article.title}</h2>
+                    <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4 line-clamp-3">{article.description}</p>
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {article.title}
-                  </h2>
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {article.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <ClockIcon className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                      {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
+                  <div className="mt-auto">
+                    <div className="flex justify-between items-center text-xs text-gray-500 mb-2 sm:mb-3">
+                      <span className="text-[0.65rem] sm:text-xs">{article.source.name}</span>
+                      <span className="flex items-center gap-1 text-[0.65rem] sm:text-xs">
+                        <ClockIcon className="w-3 h-3" />
+                        {formatDistanceToNow(new Date(article.publishedAt), {
+                          addSuffix: true,
+                        })}
+                      </span>
                     </div>
                     <a
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      className="text-blue-400 hover:text-blue-300 text-xs sm:text-sm font-medium inline-flex items-center"
                     >
-                      Read more
+                      Read full story
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </a>
                   </div>
                 </div>
-              </article>
+              </div>
             ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && !error && articles.length === 0 && (
-          <div className="text-center py-12">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <h3 className="mt-2 text-lg font-medium text-gray-900">No news found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              There are currently no news articles available for this category.
-            </p>
           </div>
         )}
       </div>
     </div>
   );
-};
-
-export default News;
+}
