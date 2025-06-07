@@ -158,8 +158,9 @@ const fetchNews = useCallback(async (): Promise<void> => {
       );
       setArticles(response.data.articles);
       setError(null);
-    } catch (err) {
-      console.error('Error fetching news:', err);
+    } catch (err: any) {
+      console.error('Error fetching news:', err.response?.data || err.message);
+
       setError('Failed to fetch news. Please try again later.');
     } finally {
       setLoading(false);
